@@ -249,6 +249,10 @@ def test_copy_snapshots(all_networks):
         network.set_snapshots(network.snapshots[:5])
         assert copied_network == network
 
+def test_network_ptdf(ac_dc_network):
+￼    ptdf = ac_dc_network.PTDF()
+￼    assert np.all([c in ac_dc_network.buses.index for c in ptdf.columns])
+￼    assert np.all([c in ac_dc_network.branches().index for c in ptdf.index])
 
 def test_add_network_static(ac_dc_network, empty_network_5_buses):
     """
