@@ -1245,10 +1245,10 @@ def calculate_PTDF(sub_network: SubNetwork, skip_pre: bool = False) -> None:
     # sub_network.PTDF = sub_network.H * B_inverse
 
     sub_network.PTDF = pd.DataFrame(
-￼        data=sub_network.H * B_inverse,
-￼        index=sub_network.branches_i(),
-￼        columns=sub_network.buses_o,
-￼    )
+        data=sub_network.H * B_inverse,
+        index=sub_network.branches_i(),
+        columns=sub_network.buses_o,
+    )
 
 
 def calculate_Y(sub_network: SubNetwork, skip_pre: bool = False) -> None:
@@ -1342,21 +1342,21 @@ def calculate_Y(sub_network: SubNetwork, skip_pre: bool = False) -> None:
 
 
 def get_network_ptdf(network):
-￼    # convenience function
+    # convenience function
     network.determine_network_topology()
-￼    if len(network.sub_networks) > 1:
-￼        logger.warning(
-￼            "Network decays into subnetworks, PTDF will be decoupled (blocks)."
-￼        )
-￼
-￼    ptdfs = []
-￼    for s in network.sub_networks["obj"]:
-￼        s.calculate_PTDF()
-￼        ptdfs.append(s.PTDF)
-￼
-￼    return pd.concat(ptdfs).fillna(0)
-￼
-￼
+    if len(network.sub_networks) > 1:
+        logger.warning(
+            "Network decays into subnetworks, PTDF will be decoupled (blocks)."
+        )
+
+    ptdfs = []
+    for s in network.sub_networks["obj"]:
+        s.calculate_PTDF()
+        ptdfs.append(s.PTDF)
+
+    return pd.concat(ptdfs).fillna(0)
+
+
 def aggregate_multi_graph(sub_network: SubNetwork) -> None:
     """
     Aggregate branches between same buses and replace with a single branch with
