@@ -315,7 +315,8 @@ def optimize_security_constrained(
             continue
 
         sn.calculate_BODF()
-        BODF = pd.DataFrame(sn.BODF, index=branches_i, columns=branches_i)[outages]
+        # BODF = pd.DataFrame(sn.BODF, index=branches_i, columns=branches_i)[outages]
+        BODF = sn.BODF
 
         for c_outage, c_affected in product(outages.unique(0), branches_i.unique(0)):
             c_outage_ = c_outage + "-outage"

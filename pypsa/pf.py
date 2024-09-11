@@ -1249,7 +1249,7 @@ def calculate_PTDF(sub_network: SubNetwork, skip_pre: bool = False) -> None:
 ￼        index=sub_network.branches_i(),
 ￼        columns=sub_network.buses_o,
 ￼    )
-    
+
 
 def calculate_Y(sub_network: SubNetwork, skip_pre: bool = False) -> None:
     """

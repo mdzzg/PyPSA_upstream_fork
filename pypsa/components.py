@@ -74,6 +74,7 @@ from pypsa.pf import (
     find_bus_controls,
     find_cycles,
     find_slack_bus,
+    get_network_ptdf,
     network_lpf,
     network_pf,
     sub_network_lpf,
@@ -277,6 +278,8 @@ class Network(Basic):
     get_switchable_as_dense = get_switchable_as_dense
     get_non_extendable_i = get_non_extendable_i
     get_active_assets = get_active_assets
+
+    PTDF = get_network_ptdf
 
     def __init__(
         self,
@@ -1572,6 +1575,12 @@ class SubNetwork(Common):
             types += len(c.ind) * [c.name]
             names += list(c.ind)
         return pd.MultiIndex.from_arrays([types, names], names=("type", "name"))
+
+        # possibly faster than python lists handling
+        # tried it out, zero difference. Matter of taste. Feel free to replace.
+        # return pd.MultiIndex.from_frame(
+        #    pd.concat([pd.DataFrame(data=c.ind.values, columns=['name']).assign(type=c.name) for c in self.iterate_components(self.network.passive_branch_components)])
+        # ).swaplevel()
 
     def branches(self) -> pd.DataFrame:
         branches = self.network.passive_branches()
