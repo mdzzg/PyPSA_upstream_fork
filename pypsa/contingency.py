@@ -10,8 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-from numpy import r_
-from scipy.sparse import csr_matrix
+from scipy.sparse import diags
 
 from pypsa.pf import calculate_PTDF
 
@@ -49,20 +48,29 @@ def calculate_BODF(sub_network: SubNetwork, skip_pre: bool = False) -> None:
     if not skip_pre:
         calculate_PTDF(sub_network)
 
-    num_branches = sub_network.PTDF.shape[0]
+    # catch one bus systems
+    if len(sub_network.PTDF) == 0:
+        sub_network.BODF = pd.DataFrame(
+            index=pd.Index([], name=("type", "name")),
+            columns=pd.Index([], name=("contingency_type", "contingency")),
+        )
+        return
 
     # build LxL version of PTDF
-    branch_PTDF = sub_network.PTDF * sub_network.K
+    # relying on consistent ordering of indexes:
+    branch_PTDF = sub_network.PTDF.to_numpy() * sub_network.K
 
     with np.errstate(divide="ignore"):
-        denominator = csr_matrix(
-            (1 / (1 - np.diag(branch_PTDF)), (r_[:num_branches], r_[:num_branches]))
-        )
-
-    sub_network.BODF = branch_PTDF * denominator
+        denominator = diags(1 / (1 - np.diag(branch_PTDF)))
 
     # make sure the flow on the branch itself is zero
-    np.fill_diagonal(sub_network.BODF, -1)
+    BODF = branch_PTDF * denominator
+    np.fill_diagonal(BODF, -1)
+
+    sub_network.BODF = pd.DataFrame(
+        data=BODF, index=sub_network.branches_i(), columns=sub_network.branches_i()
+    )
+    sub_network.BODF.columns.name = ("contingency_type", "contingency")
 
 
 def network_lpf_contingency(
@@ -128,10 +136,8 @@ def network_lpf_contingency(
 
         sn = network.sub_networks.obj[passive_branches.sub_network[branch]]
 
-        branch_i = sn._branches.index.get_loc(branch)
-        p0_new = p0_base + pd.Series(
-            sn.BODF[:, branch_i] * p0_base[branch], sn._branches.index
-        )
+        p0_new = p0_base + sn.BODF.loc[:, branch] * p0_base[branch]
+
         p0_new.name = branch
 
         p0 = pd.concat([p0, p0_new], axis=1)
